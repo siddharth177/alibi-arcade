@@ -30,11 +30,11 @@ Only Mafia is playable. Codebreakers and Hot Seat are explicitly marked future c
 
 ## Architecture
 
-`web/` is the entire static frontend, suitable for GitHub Pages or another static host. `server/api.mjs` is the HTTPS room service. It uses the pure rules in `web/js/engine.js` and Cloudflare D1, with a Vinext API route adapter in `app/api/[...path]/route.ts`.
+`web/` is the entire static frontend, suitable for GitHub Pages, GitLab Pages, or another static host. `server/api.mjs` is the HTTPS room service. It uses the pure rules in `web/js/engine.js` and Cloudflare D1, with a Vinext API route adapter in `app/api/[...path]/route.ts`.
 
 All authoritative roles, actions, ballots, and win checks run on the server. Each response is constructed by `viewFor()`; the client receives only its own role and investigation results. God may see roles and private actions but never receives session credentials. Knowing someone's name or the party code cannot authorize their actions.
 
-The static Pages frontend uses the room service at `https://alibi-arcade.siddharthreads17.chatgpt.site`. That service must allow the intended visitors before a separate Pages origin can use it. A private Sites preview remains owner-only until access is changed. For a self-hosted backend, set `globalThis.ALIBI_API_ORIGIN` before loading the app module, or update `apiOrigin()` in `web/js/network.js`.
+The static Pages frontend uses the public room service at `https://alibi-arcade.siddharthreads17.chatgpt.site`. Players do not need a ChatGPT account or ChatGPT sign-in. Room actions use individual player sessions, and secret roles stay private. The service allows cross-origin HTTPS requests so the frontend can run on another host. For a self-hosted backend, set `globalThis.ALIBI_API_ORIGIN` before loading the app module, or update `apiOrigin()` in `web/js/network.js`.
 
 The room service requires hosting that can run server code; GitHub Pages alone runs static assets. No WebRTC, separate signaling account, payment provider, or embedded third-party secret is required.
 
@@ -76,17 +76,36 @@ On your Mac, install GitHub CLI if necessary (`brew install gh`). Unzip the sour
 bash scripts/publish-github.sh
 ```
 
-The script signs into GitHub if needed, verifies the active account is `siddharth177`, creates a private `alibi-arcade` repository, pushes `main`, enables GitHub Pages through Actions, and requests deployment. It watches the deployment when the run is available and prints the actual Pages URL after success. It does not need backend runtime dependencies for the tests or static build.
+The script signs into GitHub if needed, verifies the active account is `siddharth177`, creates or updates the `alibi-arcade` repository, pushes every project file to `main`, enables GitHub Pages through Actions, and requests deployment. New source repositories default to private. If your existing `origin` already points to this project, the script reuses it and does not try to add it again. It configures GitHub CLI as the Git credential helper so Git does not request your account password. It watches the deployment when the run is available and prints the actual Pages URL after success. It does not need backend runtime dependencies for the tests or static build.
 
 The default preserves private source. GitHub Pages supports private repositories on GitHub Pro and higher plans; Free accounts need a public repository. To explicitly choose public source when creating a new repository, run `bash scripts/publish-github.sh --public`. Existing repositories are never changed from private to public by the script. Reference: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
 
 Use `bash scripts/publish-github.sh --repo-only` to create and push the repository without enabling Pages. The compatibility entry point `scripts/publish-repositories.sh` now delegates to this GitHub-only script.
 
-The shared room service is currently a private Sites preview. The owner must approve access for the intended players, or supply a separately hosted public backend, before the Pages frontend can run multiplayer games. The deployment check refuses to publish a frontend whose room service redirects visitors to sign-in. Changing GitHub repository visibility does not change the room service's access.
+The shared room service is public. Anonymous access to the homepage and `/api/health` was verified in a browser. The deployment check verifies room-service availability before publishing the frontend. No ChatGPT identity is required by the game or API.
 
-After initial setup, pushes to `main` trigger the publishing workflow. Source updates can be sent with `git push github HEAD:main`. The workflow can also be run manually from GitHub Actions.
+After initial setup, pushes to `main` trigger the publishing workflow. Rerun the publishing script for updates, or push `main` to the selected GitHub remote (`origin` if reused, otherwise `github`). The workflow can also be run manually from GitHub Actions.
 
-The repository and GitHub Pages site have **not** been created by this preparation step: this execution environment blocks `api.github.com`, so it cannot finish CLI sign-in or perform the authenticated creation commands. The publishing script is intended to run on the owner's computer.
+Run the publishing script on your own computer. The ChatGPT execution environment cannot access the Mac project folder or complete authenticated GitHub API calls.
+
+## Optional GitLab Pages
+
+GitLab Pages requires a GitLab account. It is independent of GitHub Pages. The optional script creates a project under the authenticated GitLab account, adds a separate `gitlab` remote, pushes the full project, and watches the Pages pipeline:
+
+```sh
+brew install glab
+bash scripts/publish-gitlab.sh
+```
+
+The source repository defaults to private; use `--public` explicitly to create public source instead. The game website is configured for public Pages access, including when the source is private. Existing source visibility is preserved. The `.gitlab-ci.yml` pipeline verifies the game and publishes `web/` on the default branch. There is no separate Pages-create command: a successful Pages CI job creates the deployment. A new GitLab account may need to enable its runner or complete GitLab's verification before its pipeline can run.
+
+After the pipeline succeeds, retrieve its actual website URL with:
+
+```sh
+glab api "projects/$(glab api user --jq .username)%2Falibi-arcade/pages" --jq .url
+```
+
+Official references: https://docs.gitlab.com/user/project/pages/ and https://docs.gitlab.com/api/pages/
 
 ## Rules research
 
@@ -97,6 +116,3 @@ Mafia has no single universal modern house rulebook. Alibi's exact choices are d
 - Partyy Games: https://mafia.partyygames.com/rules
 
 The original artwork, layout, interface copy, and implementation were created for this project.
-# alibi-arcade
-# alibi-arcade
-# alibi-arcade
