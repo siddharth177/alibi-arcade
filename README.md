@@ -1,4 +1,4 @@
-# Alibi Arcade (Play Live [https://siddharth177.github.io/alibi-arcade/])
+# Alibi Arcade ( [Play Live](https://siddharth177.github.io/alibi-arcade/))
 
 **Good friends. Great games. Terrible alibis.**
 
