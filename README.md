@@ -1,128 +1,288 @@
-# Alibi Arcade ( [Play Live](https://siddharth177.github.io/alibi-arcade/))
+# Alibi Arcade
 
 **Good friends. Great games. Terrible alibis.**
 
-A responsive browser game hub. Play Mafia, Hot Seat, and Codebreakers in private multiplayer rooms. Mafia is a real multiplayer room with a six-digit code, a human God/moderator, one murderer, one detective, one doctor, and the rest citizens.
+A browser-based multiplayer game hub for friends playing together in person or over a group call. Create a party, share a six-digit code, and play **Mafia**, **Codebreakers**, or **Hot Seat** on separate phones or laptops.
 
-## Play
+**[Play Alibi Arcade](https://siddharth177.github.io/alibi-arcade/)** · **[Source code](https://github.com/siddharth177/alibi-arcade)**
 
-1. God creates a party and shares the code or invite link.
-2. Five to sixteen other players join on their own screens. Five to nine is recommended for the one-murderer lineup. God is separate from those players.
-3. Everyone readies up. God deals secret roles; each player privately acknowledges theirs.
-4. Each night the murderer selects a victim, the doctor protects, and the detective investigates. Citizens make a harmless suspicion choice so screen activity does not identify special roles.
-5. God resolves the simultaneous night. Living players discuss in person, on a group call, or in the town chat. God opens and tallies private ballots.
-6. Catch the murderer to win for Town. The murderer wins at parity with the living Town. God can start a rematch.
+## Why I built it
 
-The in-app rulebook explains conduct, strategy, and house variants. Voice/video is supplied by your usual call app, not built into Alibi.
+My friends and I often played Mafia on weekends, sometimes until the next morning. When everyone went home for Diwali, we missed those sessions. Alibi Arcade started as a way to keep our game nights going over a call, with the app handling the private roles, choices, and votes.
 
-## What is implemented
+The platform now supports three games through a shared party system, while keeping each game's rules and interface separate.
 
-- Extensible game catalog, illustrated Mafia feature, mobile layouts, keyboard-accessible dialogs and role guide.
-- Six-digit rooms including leading zeros; case-insensitive unique player names; 5–16 players plus God.
-- Readiness, private role cards, God control panel, night actions, private detective history, doctor saves and voting.
-- One-runoff or no-elimination tie rules; skip ballots; no self-votes; configurable self-save, consecutive protection, eliminated-role reveals, and discussion time.
-- Town chat only in permitted phases; eliminated players cannot chat, act, or vote until the game ends.
-- Public event and resolved-ballot history; role reveals at game end; clean rematches.
-- Server-held game state, hashed session credentials, opaque bearer sessions, filtered per-player snapshots, request limits, optimistic concurrency, and automatic reconnecting polls.
-- Rooms persist through host refresh/disconnection and expire after 24 hours of inactivity. Resume God from the same browser; players resume from their original tab. Browser data clearing removes local session access.
+## The games
 
-All three catalog games are playable. The same six-digit code, authenticated sessions, persistence, and reconnecting transport work across the arcade.
+| Game | Group size | Host's role | How it plays |
+| --- | --- | --- | --- |
+| **Mafia** | 5–16 players, plus God | Separate moderator | Find the murderer through night actions, discussion, and private voting. |
+| **Codebreakers** | 4–16 people, including the host | Participating player | Two teams connect words using clues while avoiding a hidden trap. |
+| **Hot Seat** | 3–16 people, including the host | Participating player | Predict your friends' private answers and earn points for correct guesses. |
 
-## Hot Seat
+### Mafia
 
-For 3–16 players, **including the host**. One person privately answers a four-option question while everyone else predicts their answer. Choices stay private until every player submits, then correct predictions earn one point each. Everyone takes the hot seat once or twice, selected before starting. Highest score wins; ties are shared. The host can reveal once the seat has answered (missing predictions earn zero) or skip a stalled round. The hot-seat player can also skip. Rematches clear scores and answers. Forty original prompts support a full 16-person, two-turn game without repeating a question.
+God creates the room and moderates the game. Players receive one murderer, one detective, one doctor, and the remaining citizen roles.
 
-## Codebreakers
+- **Night:** the murderer chooses a victim, the doctor protects someone, and the detective investigates a suspect. Citizens also check in privately so their screen activity does not identify their role.
+- **Day:** living players discuss the outcome and cast private ballots. God closes the vote and resolves the result.
+- **Victory:** Town wins when the murderer is eliminated. Mafia wins when the murderer reaches parity with the remaining living Town players.
+- **House rules:** configurable doctor self-protection, consecutive protection, eliminated-role reveals, discussion time, and tied-vote handling.
 
-For 4–16 players, **including the host**. Each team chooses one clue-giver and at least one guesser. A random 25-word grid holds nine words for the starting team, eight for the other, seven neutrals, and one trap. Only clue-givers receive the key; a host who plays guesser cannot see it. A one-word clue and positive count permit up to count-plus-one guesses. Neutral/opponent words end the turn; finding every team word wins for that team, and a trap loses immediately. Confirmations protect irreversible guesses. The host can skip a stalled turn. Roles are editable again on rematch.
+Eliminated players can watch but cannot act, vote, or use town chat during the game. Detective results are private. God sees the information needed to moderate, and all roles are revealed at the end.
 
-Both games have a full in-app rulebook. Talk in person or on your normal group call; voice/video is not built in.
+For the single-murderer setup, a group of 5–9 players plus God generally makes for a closer game. The full house rules are available in the app and [the Mafia rulebook](docs/rules.md).
+
+### Codebreakers
+
+Two teams each choose one clue-giver and at least one guesser. The host plays as either role.
+
+- A shuffled **25-word grid** contains nine starting-team words, eight opposing-team words, seven neutral words, and one trap.
+- Only clue-givers receive the secret key. Hosting a room does not give a guesser access to it.
+- The active clue-giver submits a one-word clue and a positive number. Guessers may make up to that number plus one selections, or end their turn early.
+- Finding a neutral or opponent word ends the turn. Finding all of a team's words wins for that team; choosing the trap immediately awards victory to the other team.
+- Word selections require confirmation. The key is revealed at the end, and rematches allow the group to choose roles again.
+
+The host can skip a stalled turn if necessary. Clue-givers keep their screens private and remain silent while teammates discuss. The in-app rulebook explains this version's clue restrictions and turn rules.
+
+### Hot Seat
+
+Everyone takes a turn answering a question while the rest of the group predicts their answer.
+
+- Each question has four options. The person in the hot seat privately chooses their answer; everyone else submits a prediction.
+- Choices can change until the reveal. Results appear automatically when everyone has submitted.
+- Each correct prediction earns **one point**. The hot-seat player does not score in their own round.
+- Each person takes the seat once or twice, selected before starting. Forty prompts support a full 16-person, two-turn game without repeating a question.
+- The highest score wins, with shared victories for ties. The host can reveal after the seat has answered, excluding missing predictions. The host or hot-seat player can skip a round without awarding points.
+
+## Shared features
+
+- Six-digit party codes, including codes with leading zeros, and shareable invite links.
+- Named players, lobby readiness, and host controls.
+- Authenticated player sessions without requiring an application account.
+- Server-side validation of actions, roles, phases, and win conditions.
+- Per-player views that keep unrevealed answers, roles, and board keys private.
+- Persistent room state, reconnecting requests, and rematches.
+- Public game-event history; Mafia also includes phase-aware town chat and resolved-ballot history.
+- Responsive layouts and keyboard-accessible dialogs.
+
+Voice and video are handled through your usual group-call app. Each participant uses their own game screen.
 
 ## Architecture
 
-`web/` is the entire static frontend, suitable for GitHub Pages, GitLab Pages, or another static host. `server/api.mjs` is the HTTPS room service. `web/js/game-router.js` dispatches legacy and new Mafia rooms to the original engine, and Hot Seat/Codebreakers rooms to `web/js/party-games.js`. It uses the pure rules in `web/js/engine.js` and Cloudflare D1, with a Vinext API route adapter in `app/api/[...path]/route.ts`.
+The static frontend and multiplayer backend are deployed separately. GitHub Pages serves the game interface; a Cloudflare Worker processes room requests and stores authoritative game state in Cloudflare D1.
 
-All authoritative roles, actions, ballots, private Hot Seat choices, Codebreakers keys, scores, and win checks run on the server. Each response is constructed by `viewFor()`; the client receives only its own role and investigation results. God may see roles and private actions but never receives session credentials. Knowing someone's name or the party code cannot authorize their actions.
+```mermaid
+flowchart TD
+    Pages["GitHub Pages: static frontend"] --> Browser["Players' browsers"]
+    Browser <-->|HTTPS commands and polling| API["Cloudflare Worker: room API"]
+    API <-->|Versioned room state| DB[("Cloudflare D1")]
+    API --> Router["Game router"]
+    Router --> Mafia["Mafia rules engine"]
+    Router --> Party["Hot Seat and Codebreakers rules"]
+    Router --> Views["Filtered player views"]
+    Views --> API
+```
 
-The static Pages frontend uses the public room service at `https://alibi-arcade.siddharthreads17.chatgpt.site`. Players do not need a ChatGPT account or ChatGPT sign-in. Room actions use individual player sessions, and secret roles stay private. The service allows cross-origin HTTPS requests so the frontend can run on another host. For a self-hosted backend, set `globalThis.ALIBI_API_ORIGIN` before loading the app module, or update `apiOrigin()` in `web/js/network.js`.
+### Request and state flow
 
-The room service requires hosting that can run server code; GitHub Pages alone runs static assets. No WebRTC, separate signaling account, payment provider, or embedded third-party secret is required.
+1. The frontend creates or joins a room through the HTTPS API. The server issues an opaque session token.
+2. Each subsequent authenticated request identifies the player from that token. A client-supplied actor ID cannot override the session identity.
+3. The server loads the room, validates the requested action through the appropriate game engine, and calculates the resulting state.
+4. The update is written only if the stored room version still matches the version that was read. Concurrent changes trigger bounded retries against the latest state.
+5. A filtered view is returned to the requesting player. Browsers poll for updates, send periodic heartbeats, and back off after connection failures.
 
-## Verify
+The server decides outcomes. Browser controls help guide play, while permissions and game rules are enforced again on the backend.
 
-Node.js 22.13+ is required. The tests use Node's built-in SQLite and test runner and need no third-party packages.
+### State and persistence
 
-```sh
+The database has two main tables:
+
+| Table | Purpose |
+| --- | --- |
+| `rooms` | Party code, JSON game state, concurrency version, and expiry timestamp. |
+| `rate_limits` | Hashed request keys, counters, and rate-limit window expiry. |
+
+Room mutations refresh a **24-hour inactivity expiry**. Expired rooms reject requests and are cleaned up during room creation.
+
+Host sessions are stored in `localStorage`; player sessions are stored in the original tab's `sessionStorage`. These support resuming from the same browser or tab. Clearing browser storage removes the local session credential, even if the room still exists.
+
+### Privacy and validation
+
+- Session credentials are stored as SHA-256 hashes on the server and are omitted from player views.
+- Room codes identify parties; they do not authorize actions for an existing player.
+- Mafia views filter roles, detective results, night actions, and live ballots according to the viewer's role and game phase.
+- Hot Seat views keep the real answer and other players' predictions hidden until results are revealed.
+- Codebreakers views omit unrevealed word colours for guessers, including a host who is a guesser.
+- The API limits request size and applies rate limits to room creation, joining, and commands.
+- Rendered player names and messages are escaped before insertion into the interface.
+
+These controls support the game's privacy rules. Players still need to follow the house rules about private screens, outside messages, and clue-giver conduct.
+
+## Technology stack
+
+| Layer | Technology |
+| --- | --- |
+| Game interface | HTML5, CSS3, JavaScript ES modules |
+| Game logic | Pure JavaScript state transitions and filtered views |
+| Browser transport | Fetch API, HTTPS polling, heartbeats, retry backoff |
+| Hosted API adapter | TypeScript and Vinext using Next.js-style route handlers |
+| Backend runtime | Cloudflare Workers |
+| Database | Cloudflare D1 / SQLite, with SQL migrations |
+| Randomisation and token hashing | Web Crypto API |
+| Build tooling | Vite, Vinext, pnpm |
+| Automated tests | Node.js test runner, assertions, and built-in SQLite |
+| Frontend deployment | GitHub Pages and GitHub Actions |
+
+The game screens use plain browser modules. The framework layer provides the hosted entry point and API adapter; it is separate from the game UI and rules.
+
+## Repository structure
+
+| Path | Responsibility |
+| --- | --- |
+| `web/index.html`, `web/styles.css` | Static application shell and styles. |
+| `web/js/app.js` | Main interface, routing between screens, forms, and player interactions. |
+| `web/js/games.js` | Game catalogue and metadata. |
+| `web/js/network.js` | Room transport, session storage, polling, and reconnect behaviour. |
+| `web/js/game-router.js` | Dispatches state creation, commands, and views to the correct engine. |
+| `web/js/engine.js` | Mafia rules, roles, night actions, voting, and win checks. |
+| `web/js/party-games.js` | Hot Seat and Codebreakers rules, scoring, and private views. |
+| `web/js/party-ui.js` | Hot Seat and Codebreakers screens and rulebooks. |
+| `server/api.mjs` | HTTP endpoints, authentication, persistence, concurrency, and request limits. |
+| `app/api/[...path]/route.ts` | Connects the HTTP handler to the hosted database binding. |
+| `worker/index.ts` | Worker runtime entry point. |
+| `drizzle/` | Database migrations. |
+| `tests/` | Rules-engine and HTTP-handler integration tests. |
+| `scripts/` | Asset preparation, checks, development helpers, and publishing scripts. |
+| `.github/workflows/` | Verification and GitHub Pages deployment. |
+| `public/` | Copy of `web/` used by the full-stack build. |
+
+**Edit `web/` for frontend changes.** `npm run prepare:web` copies it to `public/`. The GitHub Pages workflow publishes `web/` directly; the Worker build uses the prepared assets and emits `dist/`.
+
+## Run the checks
+
+Use **Node.js 22.13 or newer**. The game tests and static checks do not require installing the framework dependencies.
+
+```bash
 npm test
 npm run build:pages
 ```
 
-46 automated tests cover all three games, including core rules, filtered secret views, authenticated commands, concurrent choices and joins, full HTTP game cycles, rematches, persistence, expiry, invalid inputs, and host-as-guesser key privacy.
+The current suite contains **46 automated tests** covering:
 
-A six-tab browser playthrough was also performed: God plus five players; readiness and private role acknowledgement; a doctor save; a private detective result; voting out the murderer; and Town victory.
+- Mafia roles, doctor saves, detective privacy, night actions, voting, spectators, and victory conditions.
+- Hot Seat answer privacy, scoring, seat rotation, skipped rounds, ties, and rematches.
+- Codebreakers team setup, secret-key filtering, clue validation, turn permissions, extra guesses, trap outcomes, and victories.
+- Authenticated HTTP game cycles, simultaneous room joins and private choices, session restoration, expiry, and invalid requests.
+- Snapshots that cannot mutate the authoritative state.
+
+HTTP-handler tests use an in-memory SQLite adapter for the D1-style database interface. `build:pages` validates JavaScript syntax and referenced static assets; it does not build or deploy the backend.
 
 ## Full-stack development
 
-Install the dependency versions in the committed pnpm lockfile using the package manager declared in `package.json`, then:
+Use the pnpm version declared in `package.json`—currently **11.25.0**—to install the locked framework dependencies:
 
-```sh
-npm run prepare:web
+```bash
+pnpm install --frozen-lockfile
 npm run build
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_reflective_ben_grimm.sql
+```
+
+Initialise the local database after the build has created its Worker configuration:
+
+```bash
+node --import ./scripts/sites-env.mjs \
+  ./node_modules/wrangler/bin/wrangler.js d1 execute DB \
+  --local \
+  --config dist/server/wrangler.json \
+  --persist-to .wrangler/state \
+  --file drizzle/0000_reflective_ben_grimm.sql
+```
+
+Apply the initial migration once per fresh local database. Then start development:
+
+```bash
 npm run dev
 ```
 
-Apply each local migration once. The production publishing workflow applies hosted D1 migrations. `.openai/hosting.json` binds `DB`; runtime credentials never belong in source. The Sites publishing helper builds and packages the Worker.
+The portable development command uses port `5173`; managed preview environments provide their own URL. The local API needs a configured `DB` binding and the room tables above. Binding declarations are in `.openai/hosting.json`, with local Worker configuration supplied by `vite.config.ts`.
 
-`public/` is copied from the authored `web/` by `prepare-web.mjs`. Edit `web/`, then prepare/build again. `dist/` is generated Worker output and is not the GitHub Pages directory.
+## Room API
 
-## Publish through GitHub
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/health` | Report service availability and supported games. |
+| `POST` | `/api/party` | Create a room for `mafia`, `codebreakers`, or `hotseat`. |
+| `POST` | `/api/party/:code/join` | Join a room that is still in its lobby. |
+| `GET` | `/api/party/:code` | Read the authenticated player's current view. |
+| `POST` | `/api/party/:code/command` | Submit an authenticated game action or heartbeat. |
 
-No GitLab account is required. The repository includes GitHub verification and a GitHub Pages workflow that publishes `web/` after the tests and room-service availability check pass.
+For example, the room-creation request body can be:
 
-On your Mac, install GitHub CLI if necessary (`brew install gh`). Unzip the source, open a terminal in the project directory, and run:
+```json
+{
+  "name": "Siddharth",
+  "game": "hotseat"
+}
+```
 
-```sh
+Creation and joining return a session and the caller's view. Later room requests send `Authorization: Bearer <session-token>`. Responses never include another player's credential.
+
+## Deployment
+
+### GitHub Pages frontend
+
+The existing [live site](https://siddharth177.github.io/alibi-arcade/) uses the shared room service at:
+
+```text
+https://alibi-arcade.siddharthreads17.chatgpt.site
+```
+
+The Pages workflow runs after a push to `main`, and also supports manual dispatch. It:
+
+1. Runs the tests and static asset checks.
+2. Confirms that the shared room service is publicly reachable and supports all three games.
+3. Uploads `web/` and deploys it to GitHub Pages.
+
+The repository owner's publishing helper can commit and push the source, configure Pages, and request deployment:
+
+```bash
 bash scripts/publish-github.sh
 ```
 
-The script signs into GitHub if needed, verifies the active account is `siddharth177`, creates or updates the `alibi-arcade` repository, pushes every project file to `main`, enables GitHub Pages through Actions, and requests deployment. New source repositories default to private. If your existing `origin` already points to this project, the script reuses it and does not try to add it again. It configures GitHub CLI as the Git credential helper so Git does not request your account password. It watches the deployment when the run is available and prints the actual Pages URL after success. It does not need backend runtime dependencies for the tests or static build.
+The helper checks that the active GitHub CLI account is `siddharth177` and reuses a matching existing remote. It preserves the visibility of an existing repository. If local and remote branches have diverged, reconcile them before running the helper.
 
-The default preserves private source. GitHub Pages supports private repositories on GitHub Pro and higher plans; Free accounts need a public repository. To explicitly choose public source when creating a new repository, run `bash scripts/publish-github.sh --public`. Existing repositories are never changed from private to public by the script. Reference: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
+To request deployment manually after the source has been pushed:
 
-Use `bash scripts/publish-github.sh --repo-only` to create and push the repository without enabling Pages. The compatibility entry point `scripts/publish-repositories.sh` now delegates to this GitHub-only script.
-
-The shared room service is public. Anonymous access to the homepage and `/api/health` was verified in a browser. The deployment check verifies room-service availability before publishing the frontend. No ChatGPT identity is required by the game or API.
-
-After initial setup, pushes to `main` trigger the publishing workflow. Rerun the publishing script for updates, or push `main` to the selected GitHub remote (`origin` if reused, otherwise `github`). The workflow can also be run manually from GitHub Actions.
-
-Run the publishing script on your own computer. The ChatGPT execution environment cannot access the Mac project folder or complete authenticated GitHub API calls.
-
-## Optional GitLab Pages
-
-GitLab Pages requires a GitLab account. It is independent of GitHub Pages. The optional script creates a project under the authenticated GitLab account, adds a separate `gitlab` remote, pushes the full project, and watches the Pages pipeline:
-
-```sh
-brew install glab
-bash scripts/publish-gitlab.sh
+```bash
+gh workflow run publish-pages.yml \
+  --repo siddharth177/alibi-arcade \
+  --ref main
 ```
 
-The source repository defaults to private; use `--public` explicitly to create public source instead. The game website is configured for public Pages access, including when the source is private. Existing source visibility is preserved. The `.gitlab-ci.yml` pipeline verifies the game and publishes `web/` on the default branch. There is no separate Pages-create command: a successful Pages CI job creates the deployment. A new GitLab account may need to enable its runner or complete GitLab's verification before its pipeline can run.
+### Multiplayer backend
 
-After the pipeline succeeds, retrieve its actual website URL with:
+GitHub Pages hosts the static interface. The room API requires a separate Worker deployment with a D1 database bound as `DB` and the migrations applied. Publishing the frontend does not update that backend.
 
-```sh
-glab api "projects/$(glab api user --jq .username)%2Falibi-arcade/pages" --jq .url
-```
+The full-stack build emits the Worker configuration and output under `dist/server/`. The current hosted service is deployed separately from the GitHub Pages workflow.
 
-Official references: https://docs.gitlab.com/user/project/pages/ and https://docs.gitlab.com/api/pages/
+For another backend deployment, set `globalThis.ALIBI_API_ORIGIN` before the app module loads, or update the origin in `web/js/network.js`. The room API supports cross-origin HTTPS requests so the frontend and backend can use different hosts.
 
-## Rules research
+## Adding a game
 
-Mafia has no single universal modern house rulebook. Alibi's exact choices are documented in the app and `docs/rules.md`, informed by these primary descriptions:
+The shared room service handles sessions, persistence, and transport. To extend the catalogue:
 
-- Andrew Plotkin: https://www.eblong.com/zarf/werewolf.html
-- Mafia Round: https://mafiaround.com/rules and https://mafiaround.com/roles
-- Partyy Games: https://mafia.partyygames.com/rules
+1. Implement the game's state creation, player joining, command validation, and filtered views.
+2. Register it with the game router and supported-game validation, then add its catalogue entry.
+3. Add its interface and in-app rules.
+4. Cover privacy, permissions, complete game flow, and rematches in the tests.
+5. Update the service capabilities and deployment checks before publishing the frontend.
 
-The original artwork, layout, interface copy, and implementation were created for this project.
+## Rules and references
+
+Mafia has several house-rule variants. This project's choices are documented in its rulebook, informed by:
+
+- [Andrew Plotkin's Werewolf rules](https://www.eblong.com/zarf/werewolf.html)
+- [Mafia Round rules](https://mafiaround.com/rules)
+- [Partyy Games rules](https://mafia.partyygames.com/rules)
+
+Hot Seat and Codebreakers use the specific versions described above and in their in-app rulebooks.
