@@ -1,4 +1,4 @@
-import { createRoom, addPlayer, command, viewFor, GOD } from '../web/js/engine.js';
+import { createRoom, addPlayer, command, viewFor, GOD } from '../web/js/game-router.js';
 const TTL = 24 * 60 * 60 * 1000;
 const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Max-Age': '86400', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer' };
 const answer = (value, status = 200) => new Response(JSON.stringify(value), { status, headers: { ...CORS, 'Content-Type': 'application/json; charset=utf-8' } });
@@ -18,7 +18,7 @@ async function limit(db, raw, maximum, window = 60000) {
   const row = await db.prepare('INSERT INTO rate_limits (key, count, expires_at) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = CASE WHEN expires_at <= ? THEN 1 ELSE count + 1 END, expires_at = CASE WHEN expires_at <= ? THEN excluded.expires_at ELSE expires_at END RETURNING count').bind(key, now + window, now, now).first();
   if (row.count > maximum) problem('Too many requests. Wait a minute and try again.', 429);
 }
-function connected(state) { const now = Date.now(); for (const p of state.players) p.connected = now - (p.lastSeen || state.created) < 45000; }
+function connected(state) { const now = Date.now(); for (const p of state.players) p.connected = now - (p.id === GOD ? state.hostSeen || state.created : p.lastSeen || state.created) < 45000; }
 async function identity(state, request) {
   const header = request.headers.get('Authorization') || '';
   if (!header.startsWith('Bearer ') || header.length < 40 || header.length > 180) problem('Rejoin this party to continue.', 401);
@@ -48,11 +48,11 @@ export async function handleApi(request, db) {
     if (!db) problem('The room service is unavailable. Try again shortly.', 503);
     const path = new URL(request.url).pathname.replace(/\/$/, '');
     const ip = request.headers.get('CF-Connecting-IP') || 'local';
-    if (path === '/api/health' && request.method === 'GET') return answer({ ok: true, game: 'alibi-arcade', transport: 'https' });
+    if (path === '/api/health' && request.method === 'GET') return answer({ ok: true, game: 'alibi-arcade', games: ['mafia', 'hotseat', 'codebreakers'], transport: 'https' });
     if (path === '/api/party' && request.method === 'POST') {
       const input = await body(request); await limit(db, 'create:' + ip, 30, 3600000);
       for (let i = 0; i < 12; i++) {
-        const partyCode = code(), secret = token(); const state = createRoom(partyCode, input.name);
+        const partyCode = code(), secret = token(); const state = createRoom(partyCode, input.name, input.game ?? 'mafia');
         state.hostToken = await hash(secret); state.hostSeen = Date.now();
         command(state, GOD, { type: 'settings', settings: input.settings || {} });
         await db.prepare('DELETE FROM rooms WHERE code = ? AND expires_at <= ?').bind(partyCode, Date.now()).run();

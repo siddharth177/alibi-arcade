@@ -2,7 +2,7 @@
 
 **Good friends. Great games. Terrible alibis.**
 
-A responsive browser game hub. Its first playable game is Mafia: a real multiplayer room with a six-digit code, a human God/moderator, one murderer, one detective, one doctor, and the rest citizens.
+A responsive browser game hub. Play Mafia, Hot Seat, and Codebreakers in private multiplayer rooms. Mafia is a real multiplayer room with a six-digit code, a human God/moderator, one murderer, one detective, one doctor, and the rest citizens.
 
 ## Play
 
@@ -26,13 +26,23 @@ The in-app rulebook explains conduct, strategy, and house variants. Voice/video 
 - Server-held game state, hashed session credentials, opaque bearer sessions, filtered per-player snapshots, request limits, optimistic concurrency, and automatic reconnecting polls.
 - Rooms persist through host refresh/disconnection and expire after 24 hours of inactivity. Resume God from the same browser; players resume from their original tab. Browser data clearing removes local session access.
 
-Only Mafia is playable. Codebreakers and Hot Seat are explicitly marked future catalog entries.
+All three catalog games are playable. The same six-digit code, authenticated sessions, persistence, and reconnecting transport work across the arcade.
+
+## Hot Seat
+
+For 3–16 players, **including the host**. One person privately answers a four-option question while everyone else predicts their answer. Choices stay private until every player submits, then correct predictions earn one point each. Everyone takes the hot seat once or twice, selected before starting. Highest score wins; ties are shared. The host can reveal once the seat has answered (missing predictions earn zero) or skip a stalled round. The hot-seat player can also skip. Rematches clear scores and answers. Forty original prompts support a full 16-person, two-turn game without repeating a question.
+
+## Codebreakers
+
+For 4–16 players, **including the host**. Each team chooses one clue-giver and at least one guesser. A random 25-word grid holds nine words for the starting team, eight for the other, seven neutrals, and one trap. Only clue-givers receive the key; a host who plays guesser cannot see it. A one-word clue and positive count permit up to count-plus-one guesses. Neutral/opponent words end the turn; finding every team word wins for that team, and a trap loses immediately. Confirmations protect irreversible guesses. The host can skip a stalled turn. Roles are editable again on rematch.
+
+Both games have a full in-app rulebook. Talk in person or on your normal group call; voice/video is not built in.
 
 ## Architecture
 
-`web/` is the entire static frontend, suitable for GitHub Pages, GitLab Pages, or another static host. `server/api.mjs` is the HTTPS room service. It uses the pure rules in `web/js/engine.js` and Cloudflare D1, with a Vinext API route adapter in `app/api/[...path]/route.ts`.
+`web/` is the entire static frontend, suitable for GitHub Pages, GitLab Pages, or another static host. `server/api.mjs` is the HTTPS room service. `web/js/game-router.js` dispatches legacy and new Mafia rooms to the original engine, and Hot Seat/Codebreakers rooms to `web/js/party-games.js`. It uses the pure rules in `web/js/engine.js` and Cloudflare D1, with a Vinext API route adapter in `app/api/[...path]/route.ts`.
 
-All authoritative roles, actions, ballots, and win checks run on the server. Each response is constructed by `viewFor()`; the client receives only its own role and investigation results. God may see roles and private actions but never receives session credentials. Knowing someone's name or the party code cannot authorize their actions.
+All authoritative roles, actions, ballots, private Hot Seat choices, Codebreakers keys, scores, and win checks run on the server. Each response is constructed by `viewFor()`; the client receives only its own role and investigation results. God may see roles and private actions but never receives session credentials. Knowing someone's name or the party code cannot authorize their actions.
 
 The static Pages frontend uses the public room service at `https://alibi-arcade.siddharthreads17.chatgpt.site`. Players do not need a ChatGPT account or ChatGPT sign-in. Room actions use individual player sessions, and secret roles stay private. The service allows cross-origin HTTPS requests so the frontend can run on another host. For a self-hosted backend, set `globalThis.ALIBI_API_ORIGIN` before loading the app module, or update `apiOrigin()` in `web/js/network.js`.
 
@@ -47,7 +57,7 @@ npm test
 npm run build:pages
 ```
 
-Tests cover core rules, role and action privacy, authenticated commands, malicious identity changes, concurrent room joins, the complete HTTP game loop, persistence, expiry, and invalid inputs.
+46 automated tests cover all three games, including core rules, filtered secret views, authenticated commands, concurrent choices and joins, full HTTP game cycles, rematches, persistence, expiry, invalid inputs, and host-as-guesser key privacy.
 
 A six-tab browser playthrough was also performed: God plus five players; readiness and private role acknowledgement; a doctor save; a private detective result; voting out the murderer; and Town victory.
 

@@ -30,9 +30,9 @@ export class PartyNetwork {
     const json = JSON.stringify(result.view);
     if (this.lastView !== json) { this.lastView = json; this.onView(result.view); }
   }
-  async create(name, settings = {}) {
+  async create(name, settings = {}, game = 'mafia') {
     this.onStatus('Opening your party…');
-    const result = await this.request('/party', 'POST', { name, settings }, false);
+    const result = await this.request('/party', 'POST', { name, settings, game }, false);
     this.start(result.session, result); return this.session.code;
   }
   async join(code, name, session = null) {

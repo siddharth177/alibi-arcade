@@ -11,7 +11,8 @@ try {
   if (!response.ok) throw new Error(`The room service returned HTTP ${response.status}.`);
   const result = await response.json();
   if (!result.ok || result.game !== 'alibi-arcade') throw new Error('The endpoint did not return an Alibi Arcade health response.');
-  console.log('Room service is available without sign-in.');
+  if (!['mafia', 'hotseat', 'codebreakers'].every(game => result.games?.includes(game))) throw new Error('The shared room service must be updated to support all three games before publishing this frontend.');
+  console.log('Room service is available without sign-in and supports all three games.');
 } catch (error) {
   console.error('Pages deployment paused:', error.message);
   process.exitCode = 1;
